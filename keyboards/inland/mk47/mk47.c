@@ -82,15 +82,199 @@ const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT] = {
 //set numlock to always on, thanks to drashna
 void	led_set_keymap(uint8_t usbLED)
 {
-	if(!(usbLED & (1 << USB_LED_NUM_LOCK)))
+	led_t	led_state	=host_keyboard_led_state();
+
+	if(!led_state.num_lock)
 	{
-		register_code(KC_NUMLOCK);
-		unregister_code(KC_NUMLOCK);
+		register_code(KC_NUM_LOCK);
+		unregister_code(KC_NUM_LOCK);
 	}
 }
 
-//function in keymap
-void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax);
+hsv_t	MakeHSV(uint8_t h, uint8_t s, uint8_t v)
+{
+	hsv_t	ret	={	h, s, v	};
+
+	return	ret;
+}
+
+rgb_t	MakeRGB(uint8_t r, uint8_t g, uint8_t b)
+{
+	rgb_t	ret	={	r, g, b	};
+
+	return	ret;
+}
+
+rgb_t	ColorForKey(int key, uint8_t layer)
+{
+	switch(key)
+	{
+		//numpad plus has two colours depending on layer
+		case	KC_PPLS:
+			if(layer == 1)
+			{
+				return	MakeRGB(RGB_ORANGE);
+			}
+			else
+			{
+				return	MakeRGB(RGB_GREEN);
+			}
+			break;
+
+		//gold modifierish keys
+		case	KC_ESC:		
+		case	KC_BSPC:
+		case	KC_TAB:
+		case	KC_ENT:
+		case	KC_LSFT:
+		case	KC_LCTL:
+		case	KC_LGUI:
+		case	KC_LALT:
+		case	MO(1):
+		case	MO(2):
+			return	MakeRGB(RGB_GOLD);
+
+		//tealish alpha keys
+		case	KC_A:
+		case	KC_B:
+		case	KC_C:
+		case	KC_D:
+		case	KC_E:
+		case	KC_F:
+		case	KC_G:
+		case	KC_H:
+		case	KC_I:
+		case	KC_J:
+		case	KC_K:
+		case	KC_L:
+		case	KC_M:
+		case	KC_N:
+		case	KC_O:
+		case	KC_P:
+		case	KC_Q:
+		case	KC_R:
+		case	KC_S:
+		case	KC_T:
+		case	KC_U:
+		case	KC_V:
+		case	KC_W:
+		case	KC_X:
+		case	KC_Y:
+		case	KC_Z:
+			return	MakeRGB(RGB_CYAN);
+
+		//greenish symbols layer 0
+		case	KC_SCLN:
+		case	KC_COMM:
+		case	KC_DOT:
+		//greenish layer 1
+		case	KC_SLSH:
+		case	KC_EXLM:
+		case	KC_AT:
+		case	KC_HASH:
+		case	KC_GRV:
+		case	KC_TILD:
+		case	KC_DLR:
+		case	KC_PERC:
+		case	KC_CIRC:
+		case	KC_AMPR:
+		case	KC_ASTR:
+		case	KC_LPRN:
+		case	KC_RPRN:
+		//greenish layer 3
+		case	KC_PMNS:
+		case	KC_PEQL:
+		case	KC_LBRC:
+		case	KC_RBRC:
+		case	KC_UNDS:
+		case	KC_LCBR:
+		case	KC_RCBR:
+		case	KC_QUOT:
+		case	KC_DQT:
+		case	KC_BSLS:
+		case	KC_PIPE:
+			return	MakeRGB(RGB_GREEN);
+
+		//arrows
+		case	KC_UP:
+		case	KC_LEFT:
+		case	KC_DOWN:
+		case	KC_RIGHT:
+			return	MakeRGB(RGB_RED);
+
+		//orange numpad
+		case	KC_P1:
+		case	KC_P2:
+		case	KC_P3:
+		case	KC_P4:
+		case	KC_P5:
+		case	KC_P6:
+		case	KC_P7:
+		case	KC_P8:
+		case	KC_P9:
+		case	KC_P0:
+		case	KC_PENT:
+		case	KC_PDOT:
+			return	MakeRGB(RGB_ORANGE);
+
+		//ins home etc pink
+		case	KC_INS:
+		case	KC_HOME:
+		case	KC_PGUP:
+		case	KC_DEL:
+		case	KC_END:
+		case	KC_PGDN:
+			return	MakeRGB(RGB_PINK);
+
+		//f keys
+		case	KC_F1:
+		case	KC_F2:
+		case	KC_F3:
+		case	KC_F4:
+		case	KC_F5:
+		case	KC_F6:
+		case	KC_F7:
+		case	KC_F8:
+		case	KC_F9:
+		case	KC_F10:
+		case	KC_F11:
+		case	KC_F12:
+			return	MakeRGB(RGB_PURPLE);
+
+		//media keys
+		case	KC_VOLU:
+		case	KC_MPLY:
+		case	KC_VOLD:
+		case	KC_MNXT:
+			return	MakeRGB(88, 88, 88);
+
+		//spaaaaaaaaace
+		case	KC_SPC:
+			return	MakeRGB(RGB_BLUE);
+		default:
+			return	MakeRGB(RGB_OFF);
+	}
+}
+
+void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
+{
+	for(uint8_t row=0;row < MATRIX_ROWS;++row)
+	{
+		for(uint8_t col=0;col < MATRIX_COLS;++col)
+		{
+			uint8_t	idx	=g_led_config.matrix_co[row][col];
+			
+			if(idx >= ledMin && idx < ledMax && idx != NO_LED)
+			{
+				int    key =keymap_key_to_keycode(layer, (keypos_t){col,row});
+				
+				rgb_t	colour	=ColorForKey(key, layer);
+				rgb_matrix_set_color(idx,
+					colour.r, colour.g, colour.b);
+			}
+		}
+	}
+}
 
 bool	rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
 {
