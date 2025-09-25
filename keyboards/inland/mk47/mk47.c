@@ -78,11 +78,43 @@ const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT] = {
 #endif
 
 #ifdef RGB_MATRIX_ENABLE
+
+//set numlock to always on, thanks to drashna
+void	led_set_keymap(uint8_t usbLED)
+{
+	if(!(usbLED & (1 << USB_LED_NUM_LOCK)))
+	{
+		register_code(KC_NUMLOCK);
+		unregister_code(KC_NUMLOCK);
+	}
+}
+
+//function in keymap
+void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax);
+
+bool	rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
+{
+	if(IS_LAYER_ON(2))
+	{
+		LightUpLayer(2, led_min, led_max);
+	}
+	else if(IS_LAYER_ON(1))
+	{
+		LightUpLayer(1, led_min, led_max);
+	}
+	else
+	{
+		LightUpLayer(0, led_min, led_max);
+	}
+	return	true;
+}
+
 bool rgb_matrix_indicators_advanced_kb(uint8_t led_min, uint8_t led_max) {
     if (rgb_matrix_indicators_advanced_user(led_min, led_max) != true) {
         return false;
     }
 
+    //donut think I have a caps lock anymore
     if (host_keyboard_led_state().caps_lock) {
         RGB_MATRIX_INDICATOR_SET_COLOR(12, 255, 0, 0);
     }
