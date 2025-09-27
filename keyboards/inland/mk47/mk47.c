@@ -14,7 +14,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "quantum.h"
+#include	"quantum.h"
+#include	<math.h>
 #ifdef RGB_MATRIX_ENABLE
 const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT] = {
 /* Refer to SNLED27351 manual for these locations
@@ -79,7 +80,10 @@ const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT] = {
 
 #ifdef RGB_MATRIX_ENABLE
 
-#define	MAX_LAYERS	3
+#define	MAX_LAYERS		3
+#define	FLASHY_INTERVAL	0.02f	//lower slower flash
+
+static uint32_t	sTimey;
 
 
 hsv_t	MakeHSV(uint8_t h, uint8_t s, uint8_t v)
@@ -282,6 +286,26 @@ rgb_t	ModulateColour(rgb_t col, uint8_t m)
 	return	MakeRGB(r, g, b);
 }
 
+uint8_t	GetFlash(uint8_t maxVal)
+{
+	//does this microcontroller even have a FPU?
+	float	fTime	=sTimey;
+
+	//squish the time value a bit
+	fTime	*=FLASHY_INTERVAL;
+
+	//this will be -1 to 1
+	float	wavy	=sin(fTime);
+
+	//scale to -0.5 to 0.5;
+	wavy	*=0.5f;
+
+	//now 0 to 1
+	wavy	+=0.5f;
+
+	return	(wavy * maxVal);
+}
+
 rgb_t	LightUp(uint8_t x, uint8_t y, uint8_t layer, uint8_t bright, bool bNumLock)
 {
 	rgb_t	ret	={0};
@@ -315,6 +339,15 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 			{
 				rgb_t	colour	=LightUp(col, row, layer, bright, bNumLock);
 
+				//flash the layer keys if active
+				if(layer != 0)
+				{
+					if(row == 3 && (idx == 42 || idx == 40))
+					{
+						colour	=ModulateColour(colour, GetFlash(bright));
+					}
+				}
+
 				rgb_matrix_set_color(idx,
 					colour.r, colour.g, colour.b);
 			}
@@ -324,6 +357,8 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 
 bool	rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max)
 {
+	sTimey	=timer_read32();
+
 	if(IS_LAYER_ON(2))
 	{
 		LightUpLayer(2, led_min, led_max);
