@@ -105,7 +105,7 @@ rgb_t	MakeRGB(uint8_t r, uint8_t g, uint8_t b)
 	return	ret;
 }
 
-rgb_t	ColorForKey(int key, uint8_t layer)
+rgb_t	ColorForKey(int key, uint8_t layer, bool bNumLock)
 {
 	switch(key)
 	{
@@ -113,7 +113,14 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_PPLS:
 			if(layer == 1)
 			{
-				return	MakeRGB(RGB_ORANGE);
+				if(bNumLock)
+				{
+					return	MakeRGB(RGB_ORANGE);
+				}
+				else
+				{
+					return	MakeRGB(RGB_CHARTREUSE);
+				}
 			}
 			else
 			{
@@ -130,6 +137,7 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_LCTL:
 		case	KC_LGUI:
 		case	KC_LALT:
+		case	KC_NUM:
 			return	MakeRGB(RGB_GOLD);
 
 		//magenta layer keys
@@ -218,7 +226,14 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_P0:
 		case	KC_PENT:
 		case	KC_PDOT:
-			return	MakeRGB(RGB_ORANGE);
+			if(bNumLock)
+			{
+				return	MakeRGB(RGB_ORANGE);
+			}
+			else
+			{
+				return	MakeRGB(RGB_CHARTREUSE);
+			}
 
 		//ins home etc pink
 		case	KC_INS:
@@ -265,16 +280,21 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 
 rgb_t	ModulateColour(rgb_t col, uint8_t m)
 {
-	col.r	*=m;
-	col.g	*=m;
-	col.b	*=m;
+	uint32_t	r	=col.r * m;
+	uint32_t	g	=col.g * m;
+	uint32_t	b	=col.b * m;
 
-	return	col;
+	r	>>=8;
+	g	>>=8;
+	b	>>=8;
+
+	return	MakeRGB(r, g, b);
 }
 
 void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 {
-	uint8_t	bright	=rgb_matrix_get_val();
+	bool	bNumLock	=host_keyboard_led_state().num_lock;
+	uint8_t	bright		=rgb_matrix_get_val();
 
 	for(uint8_t row=0;row < MATRIX_ROWS;++row)
 	{
@@ -288,7 +308,7 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 				int	keyL0	=keymap_key_to_keycode(0, (keypos_t){col,row});
 				if(keyL0 == MO(1) || keyL0 == MO(2))
 				{
-					rgb_t	colour	=ModulateColour(ColorForKey(keyL0, 0), bright);
+					rgb_t	colour	=ModulateColour(ColorForKey(keyL0, 0, bNumLock), bright);
 					rgb_matrix_set_color(idx,
 						colour.r, colour.g, colour.b);
 					continue;
@@ -296,7 +316,7 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 
 				int	key	=keymap_key_to_keycode(layer, (keypos_t){col,row});
 				
-				rgb_t	colour	=ModulateColour(ColorForKey(key, layer), bright);
+				rgb_t	colour	=ModulateColour(ColorForKey(key, layer, bNumLock), bright);
 				rgb_matrix_set_color(idx,
 					colour.r, colour.g, colour.b);
 			}

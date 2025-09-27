@@ -2,4 +2,6 @@
 x	unique colour for layer keys
 x	make rgb brightness work
 	audiolink mode?
-	numlock always on
+x	numlock always on (or just a key)
+x	Bug, modulate altering the colour
+x	Change numpad colour when numlock on
