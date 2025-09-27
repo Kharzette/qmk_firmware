@@ -79,17 +79,8 @@ const snled27351_led_t PROGMEM g_snled27351_leds[SNLED27351_LED_COUNT] = {
 
 #ifdef RGB_MATRIX_ENABLE
 
-//set numlock to always on, thanks to drashna
-void	led_set_keymap(uint8_t usbLED)
-{
-	led_t	led_state	=host_keyboard_led_state();
+#define	MAX_LAYERS	3
 
-	if(!led_state.num_lock)
-	{
-		register_code(KC_NUM_LOCK);
-		unregister_code(KC_NUM_LOCK);
-	}
-}
 
 hsv_t	MakeHSV(uint8_t h, uint8_t s, uint8_t v)
 {
@@ -291,6 +282,24 @@ rgb_t	ModulateColour(rgb_t col, uint8_t m)
 	return	MakeRGB(r, g, b);
 }
 
+rgb_t	LightUp(uint8_t x, uint8_t y, uint8_t layer, uint8_t bright, bool bNumLock)
+{
+	rgb_t	ret	={0};
+
+	if(layer < 0 || layer >= MAX_LAYERS)
+	{
+		return	ret;
+	}
+
+	int	key	=keymap_key_to_keycode(layer, (keypos_t){x, y});
+	if(key == KC_TRNS)
+	{
+		return	LightUp(x, y, layer - 1, bright, bNumLock);
+	}
+
+	return	ModulateColour(ColorForKey(key, layer, bNumLock), bright);
+}
+
 void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 {
 	bool	bNumLock	=host_keyboard_led_state().num_lock;
@@ -304,19 +313,8 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 			
 			if(idx >= ledMin && idx < ledMax && idx != NO_LED)
 			{
-				//special case for layer keys
-				int	keyL0	=keymap_key_to_keycode(0, (keypos_t){col,row});
-				if(keyL0 == MO(1) || keyL0 == MO(2))
-				{
-					rgb_t	colour	=ModulateColour(ColorForKey(keyL0, 0, bNumLock), bright);
-					rgb_matrix_set_color(idx,
-						colour.r, colour.g, colour.b);
-					continue;
-				}
+				rgb_t	colour	=LightUp(col, row, layer, bright, bNumLock);
 
-				int	key	=keymap_key_to_keycode(layer, (keypos_t){col,row});
-				
-				rgb_t	colour	=ModulateColour(ColorForKey(key, layer, bNumLock), bright);
 				rgb_matrix_set_color(idx,
 					colour.r, colour.g, colour.b);
 			}
