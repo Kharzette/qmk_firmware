@@ -246,6 +246,8 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_MPLY:
 		case	KC_VOLD:
 		case	KC_MNXT:
+		case	LM_BRID:
+		case	LM_BRIU:
 			return	MakeRGB(88, 88, 88);
 
 		//spaaaaaaaaace
@@ -266,7 +268,17 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 			
 			if(idx >= ledMin && idx < ledMax && idx != NO_LED)
 			{
-				int    key =keymap_key_to_keycode(layer, (keypos_t){col,row});
+				//special case for layer keys
+				int	keyL0	=keymap_key_to_keycode(0, (keypos_t){col,row});
+				if(keyL0 == MO(1) || keyL0 == MO(2))
+				{
+					rgb_t	colour	=ColorForKey(keyL0, 0);
+					rgb_matrix_set_color(idx,
+						colour.r, colour.g, colour.b);
+					continue;
+				}
+
+				int	key	=keymap_key_to_keycode(layer, (keypos_t){col,row});
 				
 				rgb_t	colour	=ColorForKey(key, layer);
 				rgb_matrix_set_color(idx,

@@ -1,0 +1,4 @@
+    make layer keys flash when held
+    unique colour for layer keys
+    make rgb brightness work
+    audiolink mode?
