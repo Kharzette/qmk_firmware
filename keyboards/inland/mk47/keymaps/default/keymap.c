@@ -29,7 +29,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 	[1] = LAYOUT_planck_mit(
 		//numpad								//block of symbols												//upper right / left thumb
 		KC_P7,	KC_P8,	KC_P9,		KC_PPLS,	KC_EXLM,	KC_AT,		KC_HASH,	KC_NO,		KC_NO,	KC_NO,	KC_GRV,		KC_TILD,
-		KC_P4,	KC_P5,	KC_P6,		KC_PPLS,	KC_DLR,		KC_PERC,	KC_CIRC,	KC_NO,		KC_NO,	KC_NO,	LM_BRID,	LM_BRIU,
+		KC_P4,	KC_P5,	KC_P6,		KC_PPLS,	KC_DLR,		KC_PERC,	KC_CIRC,	KC_NO,		KC_NO,	KC_NO,	RM_VALD,	RM_VALU,
 		KC_P1,	KC_P2,	KC_P3,		KC_PENT,	KC_AMPR,	KC_ASTR,	KC_LPRN,	KC_RPRN,	KC_NO,	KC_NO, 	KC_NO,		KC_NO,
 		KC_P0,	KC_P0,	KC_PDOT,	KC_PENT,	KC_TRNS,	KC_TRNS,				KC_TRNS,	KC_NO,	KC_NO,	KC_NO,		KC_NO
 	),

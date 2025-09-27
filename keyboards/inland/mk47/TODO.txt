@@ -1,4 +1,5 @@
-    make layer keys flash when held
-    unique colour for layer keys
-    make rgb brightness work
-    audiolink mode?
+	make layer keys flash when held
+x	unique colour for layer keys
+x	make rgb brightness work
+	audiolink mode?
+	numlock always on

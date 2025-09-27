@@ -130,9 +130,12 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_LCTL:
 		case	KC_LGUI:
 		case	KC_LALT:
+			return	MakeRGB(RGB_GOLD);
+
+		//magenta layer keys
 		case	MO(1):
 		case	MO(2):
-			return	MakeRGB(RGB_GOLD);
+			return	MakeRGB(RGB_MAGENTA);
 
 		//tealish alpha keys
 		case	KC_A:
@@ -248,6 +251,8 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 		case	KC_MNXT:
 		case	LM_BRID:
 		case	LM_BRIU:
+		case	RM_VALU:
+		case	RM_VALD:
 			return	MakeRGB(88, 88, 88);
 
 		//spaaaaaaaaace
@@ -258,8 +263,19 @@ rgb_t	ColorForKey(int key, uint8_t layer)
 	}
 }
 
+rgb_t	ModulateColour(rgb_t col, uint8_t m)
+{
+	col.r	*=m;
+	col.g	*=m;
+	col.b	*=m;
+
+	return	col;
+}
+
 void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 {
+	uint8_t	bright	=rgb_matrix_get_val();
+
 	for(uint8_t row=0;row < MATRIX_ROWS;++row)
 	{
 		for(uint8_t col=0;col < MATRIX_COLS;++col)
@@ -272,7 +288,7 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 				int	keyL0	=keymap_key_to_keycode(0, (keypos_t){col,row});
 				if(keyL0 == MO(1) || keyL0 == MO(2))
 				{
-					rgb_t	colour	=ColorForKey(keyL0, 0);
+					rgb_t	colour	=ModulateColour(ColorForKey(keyL0, 0), bright);
 					rgb_matrix_set_color(idx,
 						colour.r, colour.g, colour.b);
 					continue;
@@ -280,7 +296,7 @@ void	LightUpLayer(uint8_t layer, uint8_t ledMin, uint8_t ledMax)
 
 				int	key	=keymap_key_to_keycode(layer, (keypos_t){col,row});
 				
-				rgb_t	colour	=ColorForKey(key, layer);
+				rgb_t	colour	=ModulateColour(ColorForKey(key, layer), bright);
 				rgb_matrix_set_color(idx,
 					colour.r, colour.g, colour.b);
 			}
